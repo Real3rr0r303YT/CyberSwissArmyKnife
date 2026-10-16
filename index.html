@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e14">
+<meta name="description" content="Cyber Swiss Army Knife – Passwort-Generator, Hash-Converter, System-Info und Notizblock. Alles lokal im Browser.">
+<title>Cyber Swiss Army Knife</title>
+<style>
+:root{
+  --bg:#070a10; --bg2:#0d121b; --card:#111826; --line:#1d2a3d;
+  --text:#d7e2f0; --dim:#7a8ba3;
+  --neon:#00ffa3; --neon2:#00d4ff; --pink:#ff2e93; --warn:#ffb020;
+  --r:14px;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);color:var(--text);background:var(--bg);min-height:100vh;
+  background-image:
+    radial-gradient(900px 500px at 85% -10%,rgba(0,212,255,.10),transparent 60%),
+    radial-gradient(700px 500px at -10% 10%,rgba(255,46,147,.08),transparent 60%),
+    linear-gradient(rgba(0,255,163,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,255,163,.025) 1px,transparent 1px);
+  background-size:auto,auto,36px 36px,36px 36px;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 40px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:6px 0 22px;flex-wrap:wrap}
+.logo{font-family:var(--mono);font-size:clamp(1.15rem,4.5vw,1.7rem);font-weight:700;letter-spacing:.5px}
+.logo span{color:var(--neon);text-shadow:0 0 14px rgba(0,255,163,.55)}
+.logo i{font-style:normal;color:var(--neon2)}
+.badge{font-family:var(--mono);font-size:.72rem;color:var(--neon);border:1px solid rgba(0,255,163,.35);padding:4px 10px;border-radius:99px;background:rgba(0,255,163,.06)}
+.badge::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--neon);margin-right:7px;box-shadow:0 0 8px var(--neon);animation:pulse 2s infinite}
+@keyframes pulse{50%{opacity:.35}}
+
+nav{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{
+  flex:1 0 auto;font:600 .88rem var(--mono);color:var(--dim);background:var(--bg2);
+  border:1px solid var(--line);border-radius:12px;padding:11px 16px;cursor:pointer;white-space:nowrap;transition:.2s
+}
+nav button:hover{color:var(--text);border-color:#2b3d58}
+nav button.active{color:#031a12;background:var(--neon);border-color:var(--neon);box-shadow:0 0 22px rgba(0,255,163,.35)}
+
+.panel{display:none;animation:fade .25s ease}
+.panel.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.card{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:16px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.card h2{font:700 1rem var(--mono);color:var(--neon2);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card h2::before{content:">_";color:var(--neon)}
+label{display:block;font:.78rem var(--mono);color:var(--dim);margin:12px 0 6px;text-transform:uppercase;letter-spacing:1px}
+
+input[type=text],textarea,select{
+  width:100%;background:#080c14;border:1px solid var(--line);color:var(--text);border-radius:10px;
+  padding:12px 14px;font:.92rem var(--mono);outline:none;transition:.2s;resize:vertical
+}
+input[type=text]:focus,textarea:focus{border-color:var(--neon);box-shadow:0 0 0 3px rgba(0,255,163,.12)}
+textarea{min-height:110px}
+
+.btn{
+  font:600 .85rem var(--mono);color:var(--text);background:#16213a;border:1px solid var(--line);
+  border-radius:10px;padding:10px 14px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:6px;text-decoration:none
+}
+.btn:hover{border-color:var(--neon2);color:var(--neon2)}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--neon);color:#031a12;border-color:var(--neon)}
+.btn.primary:hover{box-shadow:0 0 20px rgba(0,255,163,.45);color:#031a12}
+.btn.danger:hover{border-color:var(--pink);color:var(--pink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+
+.out{display:flex;gap:8px;align-items:stretch}
+.out code{
+  flex:1;min-width:0;background:#080c14;border:1px solid var(--line);border-radius:10px;padding:12px 14px;
+  font:.88rem var(--mono);color:var(--neon);word-break:break-all;display:flex;align-items:center;min-height:46px
+}
+.out .btn{flex-shrink:0}
+
+.range{display:flex;align-items:center;gap:14px}
+input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:6px;border-radius:9px;background:var(--line);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--neon);box-shadow:0 0 14px var(--neon);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border:0;border-radius:50%;background:var(--neon);box-shadow:0 0 14px var(--neon);cursor:pointer}
+.len{font:700 1.1rem var(--mono);color:var(--neon);min-width:3ch;text-align:right}
+
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.opt{display:flex;align-items:center;gap:10px;background:#080c14;border:1px solid var(--line);border-radius:10px;padding:11px 12px;cursor:pointer;font:.85rem var(--mono);user-select:none}
+.opt input{accent-color:var(--neon);width:18px;height:18px}
+
+.meter{height:6px;background:var(--line);border-radius:9px;overflow:hidden;margin-top:14px}
+.meter div{height:100%;width:0;transition:.3s;border-radius:9px}
+.meter-t{font:.78rem var(--mono);color:var(--dim);margin-top:6px;display:flex;justify-content:space-between}
+
+.res{margin-top:12px}
+.res .lbl{font:700 .75rem var(--mono);color:var(--dim);margin-bottom:5px;letter-spacing:1px}
+
+table{width:100%;border-collapse:collapse;font:.85rem var(--mono)}
+td{padding:11px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border:0}
+td:first-child{color:var(--dim);width:38%;padding-right:10px}
+td:last-child{color:var(--neon);word-break:break-word}
+.ok{color:var(--neon)}.bad{color:var(--pink)}
+
+.notes-grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:760px){.notes-grid{grid-template-columns:240px 1fr}}
+.nlist{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow:auto}
+.nitem{background:#080c14;border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font:.82rem var(--mono);transition:.15s}
+.nitem:hover{border-color:#2b3d58}
+.nitem.active{border-color:var(--neon);background:rgba(0,255,163,.06)}
+.nitem b{display:block;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nitem small{color:var(--dim)}
+.status{font:.75rem var(--mono);color:var(--dim);margin-top:8px}
+
+footer{margin-top:34px;text-align:center;border-top:1px solid var(--line);padding-top:30px}
+.made{font:700 clamp(1.3rem,5.5vw,2rem) var(--mono);letter-spacing:.5px}
+.made b{color:var(--pink);text-shadow:0 0 18px rgba(255,46,147,.5)}
+.made em{font-style:normal;color:var(--neon);text-shadow:0 0 16px rgba(0,255,163,.5)}
+.flinks{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+.btn.coffee{background:linear-gradient(135deg,#ff2e93,#ff7a45);border:0;color:#fff;padding:13px 22px;font-size:.92rem}
+.btn.coffee:hover{box-shadow:0 0 26px rgba(255,46,147,.5);color:#fff}
+.copy{color:var(--dim);font:.75rem var(--mono);margin-top:18px}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,30px);background:var(--neon);color:#031a12;font:700 .85rem var(--mono);padding:11px 18px;border-radius:99px;opacity:0;pointer-events:none;transition:.25s;z-index:99;box-shadow:0 0 24px rgba(0,255,163,.45)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:520px){.card{padding:16px}.out{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo"><span>&lt;/&gt;</span> Cyber<i>Swiss</i>Army<span>Knife</span></div>
+    <div class="badge">100% lokal · keine Server</div>
+  </header>
+
+  <nav id="tabs" role="tablist">
+    <button class="active" data-t="pw">🔑 Passwort</button>
+    <button data-t="hash">#️⃣ Hash &amp; Text</button>
+    <button data-t="sys">🖥️ System-Info</button>
+    <button data-t="notes">📝 Notizen</button>
+  </nav>
+
+  <!-- PASSWORT -->
+  <section class="panel active" id="pw">
+    <div class="card">
+      <h2>Passwort-Generator</h2>
+      <div class="out">
+        <code id="pwOut">…</code>
+        <button class="btn primary" id="pwCopy">Kopieren</button>
+      </div>
+      <div class="meter"><div id="pwBar"></div></div>
+      <div class="meter-t"><span id="pwLabel">Stärke</span><span id="pwBits"></span></div>
+
+      <label>Länge</label>
+      <div class="range">
+        <input type="range" id="pwLen" min="6" max="128" value="20">
+        <span class="len" id="pwLenV">20</span>
+      </div>
+
+      <div class="opts">
+        <label class="opt"><input type="checkbox" id="oLow" checked> a–z</label>
+        <label class="opt"><input type="checkbox" id="oUp" checked> A–Z</label>
+        <label class="opt"><input type="checkbox" id="oNum" checked> 0–9</label>
+        <label class="opt"><input type="checkbox" id="oSym" checked> !@#$%&amp;*</label>
+        <label class="opt"><input type="checkbox" id="oAmb"> Ähnliche ausschließen (0OIl1)</label>
+      </div>
+      <div class="row"><button class="btn" id="pwGen">↻ Neu generieren</button></div>
+    </div>
+  </section>
+
+  <!-- HASH -->
+  <section class="panel" id="hash">
+    <div class="card">
+      <h2>Hash- &amp; Text-Converter</h2>
+      <label>Eingabe</label>
+      <textarea id="hIn" placeholder="Text hier eingeben…" spellcheck="false"></textarea>
+      <div class="row">
+        <button class="btn danger" id="hClear">Leeren</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Hashes</h2>
+      <div id="hashes"></div>
+    </div>
+
+    <div class="card">
+      <h2>Kodierung</h2>
+      <div class="res">
+        <div class="lbl">BASE64</div>
+        <div class="row" style="margin:0 0 8px">
+          <button class="btn" id="b64e">Encode</button>
+          <button class="btn" id="b64d">Decode</button>
+        </div>
+        <div class="out"><code id="b64o">—</code><button class="btn" data-copy="b64o">Kopieren</button></div>
+      </div>
+      <div class="res" style="margin-top:20px">
+        <div class="lbl">URL</div>
+        <div class="row" style="margin:0 0 8px">
+          <button class="btn" id="urle">Encode</button>
+          <button class="btn" id="urld">Decode</button>
+        </div>
+        <div class="out"><code id="urlo">—</code><button class="btn" data-copy="urlo">Kopieren</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SYSTEM -->
+  <section class="panel" id="sys">
+    <div class="card">
+      <h2>System-Information</h2>
+      <table id="sysTable"></table>
+      <div class="row">
+        <button class="btn primary" id="sysRef">↻ Aktualisieren</button>
+        <button class="btn" id="sysCopy">Alles kopieren</button>
+      </div>
+      <p class="status">Die öffentliche IP wird über api.ipify.org abgefragt (nur beim Öffnen dieses Tabs / Aktualisieren).</p>
+    </div>
+  </section>
+
+  <!-- NOTIZEN -->
+  <section class="panel" id="notes">
+    <div class="card">
+      <h2>Quick-Notizblock</h2>
+      <div class="notes-grid">
+        <div>
+          <div class="row" style="margin:0 0 10px"><button class="btn primary" id="nNew" style="width:100%;justify-content:center">+ Neue Notiz</button></div>
+          <div class="nlist" id="nList"></div>
+        </div>
+        <div>
+          <input type="text" id="nTitle" placeholder="Titel">
+          <textarea id="nBody" style="min-height:220px;margin-top:10px" placeholder="Notiz schreiben… (wird automatisch gespeichert)" spellcheck="false"></textarea>
+          <div class="row">
+            <button class="btn" id="nCopy">Kopieren</button>
+            <button class="btn" id="nExport">⬇ Export (.json)</button>
+            <button class="btn danger" id="nDel">Löschen</button>
+          </div>
+          <p class="status" id="nStatus">Gespeichert in localStorage – bleibt nur in diesem Browser.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="made">Made with <b>❤️</b> by <em>3rr0r</em></div>
+    <div class="flinks">
+      <a class="btn coffee" href="https://buymeacoffee.com/3rr0r303yt" target="_blank" rel="noopener noreferrer">☕ Sponsor / Buy me a coffee</a>    </div>
+    <p class="copy">MIT License · Open Source · Alles läuft lokal in deinem Browser</p>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("show"),1600)}
+async function copy(txt){
+  try{await navigator.clipboard.writeText(txt)}
+  catch(e){const a=document.createElement("textarea");a.value=txt;document.body.appendChild(a);a.select();document.execCommand("copy");a.remove()}
+  toast("✓ Kopiert")
+}
+
+/* ---------- Tabs ---------- */
+$$("#tabs button").forEach(b=>b.onclick=()=>{
+  $$("#tabs button").forEach(x=>x.classList.toggle("active",x===b));
+  $$(".panel").forEach(p=>p.classList.toggle("active",p.id===b.dataset.t));
+  if(b.dataset.t==="sys")renderSys();
+  history.replaceState(null,"","#"+b.dataset.t);
+});
+(()=>{const h=location.hash.slice(1);const b=$(`#tabs button[data-t="${h}"]`);if(b)b.click()})();
+
+/* ---------- Passwort-Generator ---------- */
+const SETS={low:"abcdefghijklmnopqrstuvwxyz",up:"ABCDEFGHIJKLMNOPQRSTUVWXYZ",num:"0123456789",sym:"!@#$%^&*()-_=+[]{};:,.<>?/~"};
+function rnd(n){ // unverzerrter Zufall via Rejection Sampling
+  const max=Math.floor(4294967296/n)*n, a=new Uint32Array(1);
+  do{crypto.getRandomValues(a)}while(a[0]>=max);
+  return a[0]%n;
+}
+function genPw(){
+  const amb=$("#oAmb").checked, strip=s=>amb?s.replace(/[0OIl1|]/g,""):s;
+  const sets=[];
+  if($("#oLow").checked)sets.push(strip(SETS.low));
+  if($("#oUp").checked)sets.push(strip(SETS.up));
+  if($("#oNum").checked)sets.push(strip(SETS.num));
+  if($("#oSym").checked)sets.push(SETS.sym);
+  const out=$("#pwOut");
+  if(!sets.length){out.textContent="Mindestens eine Option wählen";return}
+  const len=+$("#pwLen").value, all=sets.join("");
+  const pw=sets.map(s=>s[rnd(s.length)]); // mind. 1 Zeichen je Set
+  while(pw.length<len)pw.push(all[rnd(all.length)]);
+  for(let i=pw.length-1;i>0;i--){const j=rnd(i+1);[pw[i],pw[j]]=[pw[j],pw[i]]}
+  out.textContent=pw.join("");
+  const bits=Math.round(len*Math.log2(all.length));
+  const lv=bits<50?["Schwach","#ff2e93",25]:bits<80?["Mittel","#ffb020",50]:bits<110?["Stark","#00d4ff",78]:["Extrem stark","#00ffa3",100];
+  const bar=$("#pwBar");bar.style.width=lv[2]+"%";bar.style.background=lv[1];bar.style.boxShadow="0 0 12px "+lv[1];
+  $("#pwLabel").textContent=lv[0];$("#pwBits").textContent="≈ "+bits+" Bit Entropie";
+}
+$("#pwLen").oninput=e=>{$("#pwLenV").textContent=e.target.value;genPw()};
+["oLow","oUp","oNum","oSym","oAmb"].forEach(i=>$("#"+i).onchange=genPw);
+$("#pwGen").onclick=genPw;
+$("#pwCopy").onclick=()=>{const t=$("#pwOut").textContent;if(t&&!t.startsWith("Mindestens"))copy(t)};
+genPw();
+
+/* ---------- MD5 (Pure JS, SubtleCrypto kann kein MD5) ---------- */
+function md5(str){
+  const data=new TextEncoder().encode(str),len=data.length;
+  const total=(((len+8)>>>6)+1)<<6, buf=new Uint8Array(total);
+  buf.set(data);buf[len]=0x80;
+  const dv=new DataView(buf.buffer);
+  dv.setUint32(total-8,(len*8)>>>0,true);dv.setUint32(total-4,Math.floor(len/536870912),true);
+  const K=new Uint32Array(64),S=[7,12,17,22,5,9,14,20,4,11,16,23,6,10,15,21];
+  for(let i=0;i<64;i++)K[i]=Math.floor(Math.abs(Math.sin(i+1))*4294967296)>>>0;
+  let a0=0x67452301,b0=0xefcdab89,c0=0x98badcfe,d0=0x10325476;
+  for(let off=0;off<total;off+=64){
+    const M=[];for(let j=0;j<16;j++)M[j]=dv.getUint32(off+j*4,true);
+    let A=a0,B=b0,C=c0,D=d0;
+    for(let i=0;i<64;i++){
+      let F,g;
+      if(i<16){F=(B&C)|(~B&D);g=i}
+      else if(i<32){F=(D&B)|(~D&C);g=(5*i+1)%16}
+      else if(i<48){F=B^C^D;g=(3*i+5)%16}
+      else{F=C^(B|~D);g=(7*i)%16}
+      F=(F+A+K[i]+M[g])>>>0;A=D;D=C;C=B;
+      const r=S[(i>>4)*4+(i%4)];
+      B=(B+((F<<r)|(F>>>(32-r))))>>>0;
+    }
+    a0=(a0+A)>>>0;b0=(b0+B)>>>0;c0=(c0+C)>>>0;d0=(d0+D)>>>0;
+  }
+  const o=new DataView(new ArrayBuffer(16));
+  [a0,b0,c0,d0].forEach((v,i)=>o.setUint32(i*4,v,true));
+  return [...new Uint8Array(o.buffer)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+async function sha(alg,str){
+  if(!(window.crypto&&crypto.subtle))return "n/a (HTTPS nötig)";
+  const d=await crypto.subtle.digest(alg,new TextEncoder().encode(str));
+  return [...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+/* ---------- Hash & Text ---------- */
+const HASHES=[["MD5",s=>md5(s)],["SHA-1",s=>sha("SHA-1",s)],["SHA-256",s=>sha("SHA-256",s)],["SHA-512",s=>sha("SHA-512",s)]];
+$("#hashes").innerHTML=HASHES.map(([n],i)=>`<div class="res"><div class="lbl">${n}</div><div class="out"><code id="h${i}">—</code><button class="btn" data-copy="h${i}">Kopieren</button></div></div>`).join("");
+let hTick=0;
+async function updHashes(){
+  const v=$("#hIn").value,my=++hTick;
+  for(let i=0;i<HASHES.length;i++){
+    const r=v===""?"—":await HASHES[i][1](v);
+    if(my!==hTick)return;
+    $("#h"+i).textContent=r;
+  }
+}
+$("#hIn").oninput=updHashes;
+$("#hClear").onclick=()=>{$("#hIn").value="";updHashes();["b64o","urlo"].forEach(i=>$("#"+i).textContent="—")};
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-copy]");if(!b)return;
+  const t=$("#"+b.dataset.copy).textContent;if(t&&t!=="—")copy(t);
+});
+const u8b64=s=>{const b=new TextEncoder().encode(s);let x="";b.forEach(c=>x+=String.fromCharCode(c));return btoa(x)};
+const b64u8=s=>{const x=atob(s.trim()),b=Uint8Array.from(x,c=>c.charCodeAt(0));return new TextDecoder("utf-8",{fatal:true}).decode(b)};
+function safe(fn,target){try{$("#"+target).textContent=fn()||"—"}catch(e){$("#"+target).textContent="⚠ Ungültige Eingabe"}}
+$("#b64e").onclick=()=>safe(()=>u8b64($("#hIn").value),"b64o");
+$("#b64d").onclick=()=>safe(()=>b64u8($("#hIn").value),"b64o");
+$("#urle").onclick=()=>safe(()=>encodeURIComponent($("#hIn").value),"urlo");
+$("#urld").onclick=()=>safe(()=>decodeURIComponent($("#hIn").value),"urlo");
+
+/* ---------- System-Info ---------- */
+let ipInfo="…";
+async function fetchIP(){
+  ipInfo="lädt…";renderSys(true);
+  try{
+    const c=new AbortController(),t=setTimeout(()=>c.abort(),5000);
+    const r=await fetch("https://api.ipify.org?format=json",{signal:c.signal,cache:"no-store"});
+    clearTimeout(t);ipInfo=(await r.json()).ip;
+  }catch(e){ipInfo="nicht abrufbar (offline / blockiert)"}
+  renderSys(true);
+}
+function sysData(){
+  const n=navigator,c=n.connection||n.mozConnection||n.webkitConnection||{};
+  const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return [
+    ["Netzwerk",n.onLine?'<span class="ok">● online</span>':'<span class="bad">● offline</span>'],
+    ["Öffentliche IP",ipInfo],
+    ["Verbindungstyp",c.effectiveType?`${c.effectiveType}${c.downlink?` · ~${c.downlink} Mbit/s`:""}${c.rtt?` · ${c.rtt} ms RTT`:""}`:"nicht verfügbar"],
+    ["User-Agent",n.userAgent],
+    ["Plattform",n.userAgentData?.platform||n.platform||"?"],
+    ["Bildschirm",`${screen.width} × ${screen.height} px`],
+    ["Viewport",`${innerWidth} × ${innerHeight} px`],
+    ["Pixel-Ratio",String(devicePixelRatio)],
+    ["Farbtiefe",screen.colorDepth+" Bit"],
+    ["CPU-Kerne",String(n.hardwareConcurrency||"?")],
+    ["RAM (ca.)",n.deviceMemory?n.deviceMemory+" GB":"nicht verfügbar"],
+    ["Sprache",(n.languages||[n.language]).join(", ")],
+    ["Zeitzone",tz],
+    ["Touch",n.maxTouchPoints>0?`ja (${n.maxTouchPoints} Punkte)`:"nein"],
+    ["Cookies",n.cookieEnabled?"aktiviert":"deaktiviert"],
+    ["Do Not Track",n.doNotTrack==="1"?"an":"aus / unbekannt"],
+    ["Sicherer Kontext",window.isSecureContext?"ja (HTTPS)":"nein"],
+    ["Dark-Mode",matchMedia("(prefers-color-scheme: dark)").matches?"bevorzugt":"nicht bevorzugt"]
+  ];
+}
+function renderSys(skipFetch){
+  $("#sysTable").innerHTML=sysData().map(([k,v])=>`<tr><td>${k}</td><td>${typeof v==="string"&&v.startsWith("<span")?v:esc(v)}</td></tr>`).join("");
+  if(!skipFetch&&ipInfo==="…")fetchIP();
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+$("#sysRef").onclick=fetchIP;
+$("#sysCopy").onclick=()=>copy(sysData().map(([k,v])=>`${k}: ${String(v).replace(/<[^>]+>/g,"")}`).join("\n"));
+addEventListener("online",()=>renderSys(true));addEventListener("offline",()=>renderSys(true));
+addEventListener("resize",()=>{if($("#sys").classList.contains("active"))renderSys(true)});
+
+/* ---------- Notizen ---------- */
+const KEY="csak_notes_v1";
+let notes=[],cur=null;
+function load(){try{notes=JSON.parse(localStorage.getItem(KEY))||[]}catch(e){notes=[]}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(notes));$("#nStatus").textContent="✓ Gespeichert · "+new Date().toLocaleTimeString()}catch(e){$("#nStatus").textContent="⚠ Speichern nicht möglich (localStorage blockiert)"}}
+function renderList(){
+  $("#nList").innerHTML=notes.length?notes.map(n=>`<div class="nitem ${n.id===cur?"active":""}" data-id="${n.id}"><b>${esc(n.title||"Ohne Titel")}</b><small>${new Date(n.ts).toLocaleString()}</small></div>`).join(""):'<div class="status">Noch keine Notizen.</div>';
+}
+function openNote(id){
+  cur=id;const n=notes.find(x=>x.id===id);
+  $("#nTitle").value=n?n.title:"";$("#nBody").value=n?n.body:"";renderList();
+}
+function newNote(){
+  const n={id:Date.now().toString(36),title:"",body:"",ts:Date.now()};
+  notes.unshift(n);save();openNote(n.id);$("#nTitle").focus();
+}
+function edit(){
+  const n=notes.find(x=>x.id===cur);if(!n)return newNoteWith();
+  n.title=$("#nTitle").value;n.body=$("#nBody").value;n.ts=Date.now();
+  notes.sort((a,b)=>b.ts-a.ts);save();renderList();
+}
+function newNoteWith(){const t=$("#nTitle").value,b=$("#nBody").value;newNote();$("#nTitle").value=t;$("#nBody").value=b;edit()}
+let dbt;const deb=()=>{clearTimeout(dbt);dbt=setTimeout(edit,300)};
+$("#nTitle").oninput=deb;$("#nBody").oninput=deb;
+$("#nNew").onclick=newNote;
+$("#nList").onclick=e=>{const i=e.target.closest(".nitem");if(i)openNote(i.dataset.id)};
+$("#nCopy").onclick=()=>copy($("#nBody").value);
+$("#nDel").onclick=()=>{
+  if(!cur||!confirm("Diese Notiz löschen?"))return;
+  notes=notes.filter(n=>n.id!==cur);save();
+  openNote(notes[0]?.id||null);
+};
+$("#nExport").onclick=()=>{
+  const b=new Blob([JSON.stringify(notes,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="notes-export.json";a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+load();notes.length?openNote(notes[0].id):newNote();
+
+if("serviceWorker"in navigator&&0){} // Platzhalter für spätere PWA-Unterstützung
+</script>
+</body>
+</html>
