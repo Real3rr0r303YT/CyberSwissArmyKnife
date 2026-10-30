@@ -8,7 +8,7 @@ Eine einzige HTML-Datei. Keine Server. Keine Tracker. Alles läuft lokal in dein
 [![License: MIT](https://img.shields.io/badge/License-MIT-00ffa3.svg?style=for-the-badge)](LICENSE)
 [![Made with HTML/CSS/JS](https://img.shields.io/badge/Made%20with-HTML%20%7C%20CSS%20%7C%20JS-00d4ff?style=for-the-badge)](#)
 [![No Dependencies](https://img.shields.io/badge/Dependencies-0-ff2e93?style=for-the-badge)](#)
-[![Buy Me A Coffee](https://img.shields.io/badge/Support-Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/3rr0r303yt)
+[![Buy Me A Coffee](https://img.shields.io/badge/Support-Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/3rr0r303YT)
 
 </div>
 
@@ -120,7 +120,7 @@ Bitte keine externen Abhängigkeiten hinzufügen – das Projekt bleibt eine ein
 
 Wenn dir das Projekt gefällt, freue ich mich über einen Stern ⭐ und einen Kaffee ☕
 
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/3rr0r303yt)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/3rr0r303YT)
 
 ---
 
@@ -139,3 +139,5 @@ MIT License © 2026 3rr0r
 **Made with ❤️ by 3rr0r**
 
 </div>
+
+<p align="center"><b>Made by <a href="https://github.com/Real3rr0r303YT">Real3rr0r303YT</a></b></p>
